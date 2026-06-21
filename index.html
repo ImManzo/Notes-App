@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Notes Taking App — Mansour Kanswa</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%2334506A'/%3E%3Cstop offset='60%25' stop-color='%231F3346'/%3E%3Cstop offset='100%25' stop-color='%2316242F'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='url(%23g)'/%3E%3Ctext x='32' y='42' font-family='Arial,Helvetica,sans-serif' font-size='32' font-weight='700' fill='%23ffffff' text-anchor='middle'%3EM%3C/text%3E%3C/svg%3E">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  body{ background:#FAFAF8; color:#1A1A1A; font-family:'Inter',-apple-system,sans-serif; line-height:1.6; -webkit-font-smoothing:antialiased; }
+  .top-bar{ background:rgba(250,250,248,0.86); backdrop-filter:blur(10px); border-bottom:1px solid #E5E3DD; padding:16px 28px; display:flex; justify-content:space-between; align-items:center; }
+  .back-link{ font-family:'JetBrains Mono',monospace; font-size:13px; color:#6B6B6B; text-decoration:none; display:flex; align-items:center; gap:6px; transition:color .15s; }
+  .back-link:hover{ color:#1A1A1A; } .back-link svg{ width:14px; height:14px; }
+  .page-title{ font-size:13px; font-weight:600; color:#2D4356; letter-spacing:0.04em; }
+  .project-page{ max-width:900px; margin:0 auto; padding:40px 28px 60px; }
+  .project-header{ margin-bottom:40px; }
+  .project-header h1{ font-size:28px; font-weight:800; letter-spacing:-0.02em; margin-bottom:8px; }
+  .project-header p{ font-size:15px; color:#4A4A48; max-width:500px; }
+  .preview-section{ background:#fff; border:1px solid #E5E3DD; border-radius:14px; padding:40px; margin-bottom:40px; min-height:400px; }
+  .code-section h2{ font-size:13px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:#1A1A1A; margin-bottom:16px; }
+  pre{ background:#1a1a2e; color:#e0e0e0; font-family:'JetBrains Mono',monospace; font-size:13px; line-height:1.7; padding:24px; border-radius:10px; overflow-x:auto; tab-size:2; }
+  .hl-kw{ color:#c792ea; } .hl-fn{ color:#82aaff; } .hl-str{ color:#c3e88d; } .hl-num{ color:#f78c6c; } .hl-cm{ color:#546e7a; font-style:italic; }
+  footer{ text-align:center; padding:30px 28px; border-top:1px solid #E5E3DD; font-family:'JetBrains Mono',monospace; font-size:11.5px; color:#6B6B6B; }
+
+  .notes-app{ max-width:500px; margin:0 auto; }
+  .notes-header{ display:flex; gap:8px; margin-bottom:20px; }
+  .notes-header input{ flex:1; padding:10px 14px; border:1px solid #E5E3DD; border-radius:8px; font-size:14px; outline:none; }
+  .notes-header input:focus{ border-color:#2D4356; }
+  .notes-header button{ padding:10px 18px; background:#1A1A1A; color:#fff; border:none; border-radius:8px; font-size:14px; font-weight:600; cursor:pointer; white-space:nowrap; }
+  .notes-header button:hover{ background:#2D4356; }
+  .notes-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:12px; }
+  .note-card{ border:1px solid #E5E3DD; border-radius:10px; padding:16px; background:#fff; position:relative; transition:transform .15s,box-shadow .15s; }
+  .note-card:hover{ transform:translateY(-2px); box-shadow:0 4px 12px rgba(0,0,0,0.06); }
+  .note-title{ font-weight:600; font-size:14px; margin-bottom:4px; }
+  .note-text{ font-size:13px; color:#4A4A48; word-wrap:break-word; white-space:pre-wrap; }
+  .note-date{ font-size:11px; color:#6B6B6B; margin-top:8px; font-family:'JetBrains Mono',monospace; }
+  .note-actions{ position:absolute; top:8px; right:10px; display:flex; gap:4px; }
+  .note-actions button{ background:none; border:none; color:#ccc; cursor:pointer; font-size:13px; padding:2px 5px; }
+  .note-actions button:hover{ color:#2D4356; }
+  .note-actions .del:hover{ color:#e94560; }
+  .note-edit-input{ width:100%; padding:6px 8px; border:1px solid #E5E3DD; border-radius:6px; font-size:13px; margin-bottom:4px; outline:none; font-family:'Inter',sans-serif; }
+  .note-edit-input:focus{ border-color:#2D4356; }
+  .note-edit-actions{ display:flex; gap:6px; margin-top:4px; }
+  .note-edit-actions button{ padding:4px 10px; border-radius:5px; border:none; font-size:11px; cursor:pointer; font-weight:600; }
+  .note-edit-actions .save-btn{ background:#2D4356; color:#fff; }
+  .note-edit-actions .cancel-btn{ background:#E5E3DD; color:#4A4A48; }
+  .notes-empty{ text-align:center; padding:40px; color:#6B6B6B; }
+  .notes-empty svg{ width:48px; height:48px; color:#E5E3DD; margin-bottom:8px; }
+</style>
+</head>
+<body>
+<div class="top-bar">
+  <a class="back-link" href="../../"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5m7-7l-7 7 7 7"/></svg>Back to portfolio</a>
+  <span class="page-title">Project / Notes Taking App</span>
+</div>
+<div class="project-page">
+  <div class="project-header">
+    <h1>Notes Taking App</h1>
+    <p>Write, save, and delete notes — all stored in your browser with localStorage.</p>
+  </div>
+  <div class="preview-section">
+    <div class="notes-app">
+      <div class="notes-header">
+        <input type="text" id="noteTitle" placeholder="Note title">
+        <input type="text" id="noteText" placeholder="Write a note..." style="flex:2">
+        <button onclick="addNote()">+ Add</button>
+      </div>
+      <div class="notes-grid" id="notesGrid"></div>
+    </div>
+  </div>
+  <div class="code-section">
+    <h2>Source Code</h2>
+    <pre><span class="hl-cm">// Notes App — CRUD with edit support</span>
+
+<span class="hl-kw">let</span> notes = <span class="hl-fn">JSON</span>.<span class="hl-fn">parse</span>(<span class="hl-fn">localStorage</span>.<span class="hl-fn">getItem</span>(<span class="hl-str">"notes"</span>)) || [];
+<span class="hl-kw">let</span> editingId = <span class="hl-kw">null</span>;
+
+<span class="hl-kw">function</span> <span class="hl-fn">startEdit</span>(id) {
+  editingId = id;
+  <span class="hl-fn">render</span>();
+}
+
+<span class="hl-kw">function</span> <span class="hl-fn">saveEdit</span>(id) {
+  <span class="hl-kw">const</span> card = document.<span class="hl-fn">querySelector</span>(<span class="hl-str">`[data-id="${id}"]`</span>);
+  <span class="hl-kw">const</span> title = card.<span class="hl-fn">querySelector</span>(<span class="hl-str">".edit-title"</span>).value.<span class="hl-fn">trim</span>() || <span class="hl-str">"Untitled"</span>;
+  <span class="hl-kw">const</span> text = card.<span class="hl-fn">querySelector</span>(<span class="hl-str">".edit-text"</span>).value.<span class="hl-fn">trim</span>();
+  <span class="hl-kw">if</span> (!text) <span class="hl-kw">return</span>;
+  <span class="hl-kw">const</span> note = notes.<span class="hl-fn">find</span>(n => n.id === id);
+  <span class="hl-kw">if</span> (note) { note.title = title; note.text = text; }
+  editingId = <span class="hl-kw">null</span>;
+  <span class="hl-fn">save</span>();
+}
+
+<span class="hl-kw">function</span> <span class="hl-fn">render</span>() {
+  grid.<span class="hl-fn">innerHTML</span> = notes.<span class="hl-fn">map</span>(n => {
+    <span class="hl-kw">if</span> (n.id === editingId) {
+      <span class="hl-kw">return</span> <span class="hl-str">`&lt;div class="note-card" data-id="${n.id}"&gt;
+        &lt;input class="note-edit-input edit-title" value="${n.title}"&gt;
+        &lt;textarea class="note-edit-input edit-text"&gt;${n.text}&lt;/textarea&gt;
+        &lt;div class="note-edit-actions"&gt;
+          &lt;button onclick="saveEdit(${n.id})"&gt;Save&lt;/button&gt;
+          &lt;button onclick="cancelEdit()"&gt;Cancel&lt;/button&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;`</span>;
+    }
+    <span class="hl-kw">return</span> <span class="hl-str">`&lt;div class="note-card" data-id="${n.id}"&gt;
+      &lt;div class="note-actions"&gt;
+        &lt;button onclick="startEdit(${n.id})"&gt;✎&lt;/button&gt;
+        &lt;button onclick="deleteNote(${n.id})"&gt;✕&lt;/button&gt;
+      &lt;/div&gt;
+      &lt;div class="note-title"&gt;${n.title}&lt;/div&gt;
+      &lt;div class="note-text"&gt;${n.text}&lt;/div&gt;
+    &lt;/div&gt;`</span>;
+  }).<span class="hl-fn">join</span>(<span class="hl-str">""</span>);
+}</pre>
+  </div>
+</div>
+<footer><span>Mansour Kanswa</span></footer>
+<script>
+  let notes = JSON.parse(localStorage.getItem("notes")) || [];
+  let editingId = null;
+
+  function save() { localStorage.setItem("notes", JSON.stringify(notes)); render(); }
+
+  function addNote() {
+    const title = document.getElementById("noteTitle").value.trim() || "Untitled";
+    const text = document.getElementById("noteText").value.trim();
+    if (!text) return;
+    notes.push({ id: Date.now(), title, text, date: new Date().toLocaleDateString() });
+    document.getElementById("noteTitle").value = "";
+    document.getElementById("noteText").value = "";
+    save();
+  }
+
+  function deleteNote(id) { notes = notes.filter(n => n.id !== id); save(); }
+
+  function startEdit(id) {
+    editingId = id;
+    render();
+    const card = document.querySelector(`[data-id="${id}"]`);
+    if (card) {
+      const titleInput = card.querySelector(".edit-title");
+      const textInput = card.querySelector(".edit-text");
+      if (titleInput) titleInput.focus();
+    }
+  }
+
+  function saveEdit(id) {
+    const card = document.querySelector(`[data-id="${id}"]`);
+    if (!card) return;
+    const title = card.querySelector(".edit-title").value.trim() || "Untitled";
+    const text = card.querySelector(".edit-text").value.trim();
+    if (!text) return;
+    const note = notes.find(n => n.id === id);
+    if (note) { note.title = title; note.text = text; }
+    editingId = null;
+    save();
+  }
+
+  function cancelEdit() { editingId = null; render(); }
+
+  function render() {
+    const grid = document.getElementById("notesGrid");
+    if (!notes.length) { grid.innerHTML = '<div class="notes-empty"><p>No notes yet. Write one above!</p></div>'; return; }
+    grid.innerHTML = notes.map(n => {
+      if (n.id === editingId) {
+        return `<div class="note-card" data-id="${n.id}">
+          <input class="note-edit-input edit-title" value="${n.title}">
+          <textarea class="note-edit-input edit-text" style="resize:vertical;min-height:60px;font-family:'Inter',sans-serif;">${n.text}</textarea>
+          <div class="note-edit-actions">
+            <button class="save-btn" onclick="saveEdit(${n.id})">Save</button>
+            <button class="cancel-btn" onclick="cancelEdit()">Cancel</button>
+          </div>
+        </div>`;
+      }
+      return `<div class="note-card" data-id="${n.id}">
+        <div class="note-actions">
+          <button onclick="startEdit(${n.id})" title="Edit">✎</button>
+          <button class="del" onclick="deleteNote(${n.id})" title="Delete">✕</button>
+        </div>
+        <div class="note-title">${n.title}</div>
+        <div class="note-text">${n.text}</div>
+        <div class="note-date">${n.date}</div>
+      </div>`;
+    }).join("");
+  }
+  render();
+</script>
+</body>
+</html>
